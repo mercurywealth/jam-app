@@ -1,0 +1,9 @@
+mutation CreateNote($title: String!, $description: String, $owner: String!){
+    createNote(data: {
+        title: $title,
+        description: $description
+        owner: $owner
+    }){
+        id
+    }
+}

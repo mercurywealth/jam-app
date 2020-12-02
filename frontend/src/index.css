@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+  white-space: pre-line;
+  padding: 4px;
+  background-color: #eee;
+  display: block;
+}
+
+#root .form-right {
+  justify-content: flex-end;
+  margin: 0 0 1em;
+}
+#root .form-right > .field:first-child {
+  padding-left: 0;
+}
+#root .form-right > .field:last-child {
+  padding-right: 0;
+}
+
+#root .form-right > .field > .ui.button {
+  margin: 0;
+}
+
+#root .icon.clickable {
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 4px;
+  box-sizing: content-box;
+}
+
+#root .icon.clickable:hover {
+  color: blue;
+  transform: scale(1.1);
+}
+
+#root .form-end {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#root .form-end > button {
+  flex-grow: 0;
+  align-self: flex-start;
+  margin-top: 16px;
+}
+
+/* Override Semantic's Icon styling since we have Pro */
+#root i.fas, body i.far, body i.fal {
+  font-family: "Font Awesome 5 Pro";
+}
+#root i.fab {
+  font-family: "Font Awesome 5 Brands";
+  font-weight: 400;
+}
+#root i.fad {
+  font-family: "Font Awesome 5 Duotone";
+  font-weight: 900;
+}
+#root i.fas {
+  font-weight: 900;
+}
+#root i.far {
+  font-weight: 400;
+}
+#root i.fal {
+  font-weight: 300;
+}
+

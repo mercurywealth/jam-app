@@ -1,0 +1,24 @@
+#root .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin-bottom: 16px;
+    align-self: stretch;
+    grid-gap: 16px;
+}
+
+#root .main .notes-grid > .ui.card {
+    margin: 0;
+    width: unset;
+}
+
+#root .main .notes-grid > .ui.card > .content > .header {
+    display: flex;
+}
+#root .main .notes-grid > .ui.card .controls {
+    margin-left: auto;
+    margin-bottom: auto;
+    display: flex;
+}
+#root .main .notes-grid > .ui.card .controls > .icon {
+    margin-left: 2px;
+}

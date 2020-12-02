@@ -1,0 +1,48 @@
+{
+  "name": "jam-app-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node dist/index.js",
+    "build": "tsc",
+    "dev": "set DEV=true && nodemon --ext ts --watch src --exec ts-node src/index.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "docker-login": "docker login mwmcontainerregistry.azurecr.io",
+    "docker-build": "docker build -t mwmcontainerregistry.azurecr.io/jam-app .",
+    "push": "docker build -t mwmcontainerregistry.azurecr.io/jam-app . && docker push mwmcontainerregistry.azurecr.io/jam-app"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server": "^2.19.0",
+    "apollo-server-express": "^2.19.0",
+    "class-validator": "^0.12.2",
+    "express": "^4.17.1",
+    "graphql": "^15.4.0",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.2.5",
+    "reflect-metadata": "^0.1.13",
+    "sequential-uuid": "^1.0.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/typescript": "1.19.0",
+    "@graphql-codegen/typescript-operations": "1.17.12",
+    "@graphql-codegen/typescript-react-apollo": "2.2.1",
+    "@graphql-codegen/typescript-resolvers": "1.18.0",
+    "@types/node": "^14.14.10",
+    "@typescript-eslint/eslint-plugin": "^4.8.2",
+    "@typescript-eslint/parser": "^4.8.2",
+    "eslint": "^7.14.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "nodemon": "^2.0.6",
+    "prettier": "^2.2.0",
+    "ts-node": "^9.0.0",
+    "type-graphql": "^1.1.1",
+    "typeorm": "^0.2.29",
+    "typescript": "^4.1.2"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "name": "jam-app-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@apollo/client": "^3.2.9",
+    "@auth0/auth0-react": "^1.2.0",
+    "@graphql-codegen/introspection": "^1.18.1",
+    "@graphql-codegen/near-operation-file-preset": "^1.17.13",
+    "@graphql-codegen/typescript-react-apollo": "^2.2.1",
+    "@testing-library/jest-dom": "^5.11.6",
+    "@testing-library/react": "^11.2.2",
+    "@testing-library/user-event": "^12.2.2",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^12.19.7",
+    "@types/react": "^16.14.2",
+    "@types/react-dom": "^16.9.10",
+    "@types/react-router-dom": "^5.1.6",
+    "graphql": "^15.4.0",
+    "msal": "^1.4.4",
+    "react": "^17.0.1",
+    "react-aad-msal": "^2.3.5",
+    "react-dom": "^17.0.1",
+    "react-helmet": "^6.1.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.1",
+    "semantic-ui-css": "^2.4.1",
+    "semantic-ui-react": "^2.0.1",
+    "typescript": "^4.1.2",
+    "web-vitals": "^0.2.4"
+  },
+  "scripts": {
+    "start": "set DEV=true && react-scripts start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-scripts eject",
+    "generate": "graphql-codegen --watch"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^1.19.4",
+    "@graphql-codegen/typescript-operations": "^1.17.12",
+    "react-app-rewired": "^2.1.6"
+  }
+}
