@@ -2,9 +2,9 @@ import React from 'react';
 import {Menu, Icon} from 'semantic-ui-react';
 import {BrowserRouter as Router,Switch,Route,Link} from 'react-router-dom';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
-//import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
-import { AzureAD, withAuthentication } from "react-aad-msal";
-import AuthProvider from './components/wrappers/authProvider';
+import { MsalProvider } from "@azure/msal-react";
+import { Configuration,  PublicClientApplication } from "@azure/msal-browser";
+import Navbar from './components/layout/navbar';
 
 //Routes
 import MainRoute from './routes/main';
@@ -16,19 +16,38 @@ const client = new ApolloClient({
     cache: new InMemoryCache()
 });
 
+// MSAL configuration
+const tenant = process.env.REACT_APP_B2C_TENANT!;
+const subdomain = tenant.split(".")[0];
+const flow = process.env.REACT_APP_B2C_SIGNINFLOW!;
+const msalConfiguration: Configuration = {
+    auth: {
+        authority: `https://${subdomain}.b2clogin.com/tfp/${tenant}/${flow}`,
+        knownAuthorities: [`https://${subdomain}.b2clogin.com/tfp/${tenant}/${flow}`],
+        clientId: process.env.REACT_APP_B2C_CLIENT!,
+        //redirectUri: window.location.origin,
+        //navigateToLoginRequestUrl: true,
+    },
+    cache: {
+        cacheLocation: "sessionStorage",
+        storeAuthStateInCookie: false,
+    },
+};
+console.log(msalConfiguration.auth!.authority);
+const msalPCA = new PublicClientApplication(msalConfiguration);
+
 export default function App (){
-    return <Router>
-        <Menu>
-            <Menu.Item header><Link to="/">Jam-App</Link></Menu.Item>
-            <Menu.Item content="Logout" icon={<Icon className="far fa-sign-out"/>} style={{marginLeft: "auto"}}/>
-        </Menu>
-        <ApolloProvider client={client}>
-            <Switch>
-                <Route path="/new" component={withAuthentication(NoteRoute, {provider: AuthProvider})}/>
-                <Route path="/note/:id" component={withAuthentication(NoteRoute, {provider: AuthProvider})}/>
-                
-                <Route path="/" component={MainRoute}/>
-            </Switch>
-        </ApolloProvider>
-    </Router>;
+    return <MsalProvider instance={msalPCA}>
+        <Router>
+            <Navbar/>
+            <ApolloProvider client={client}>
+                <Switch>
+                    <Route path="/new" component={NoteRoute}/>
+                    <Route path="/note/:id" component={NoteRoute}/>
+                    
+                    <Route path="/" component={MainRoute}/>
+                </Switch>
+            </ApolloProvider>
+        </Router>
+    </MsalProvider>;
 }

@@ -5,6 +5,8 @@
   "dependencies": {
     "@apollo/client": "^3.2.9",
     "@auth0/auth0-react": "^1.2.0",
+    "@azure/msal-browser": "^2.7.0",
+    "@azure/msal-react": "^1.0.0-alpha.0",
     "@graphql-codegen/introspection": "^1.18.1",
     "@graphql-codegen/near-operation-file-preset": "^1.17.13",
     "@graphql-codegen/typescript-react-apollo": "^2.2.1",
@@ -30,7 +32,7 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "start": "set DEV=true && react-scripts start",
+    "start": "set HTTPS=true&&react-scripts start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",

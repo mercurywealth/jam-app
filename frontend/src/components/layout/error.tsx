@@ -7,6 +7,7 @@ interface ErrorState {
 interface ErrorProps {
     message: string,
     graphQLErrors?: readonly GraphQLError[],
+    code?: string,
 }
 
 export default class Error extends React.Component<ErrorProps,ErrorState>{
@@ -16,11 +17,10 @@ export default class Error extends React.Component<ErrorProps,ErrorState>{
     }
 
     render(){
-        console.log(this.props.graphQLErrors);
         return <div className="mwm-error">
             <h1>Uh-oh! An error occured</h1>
             <code>
-                {this.props.message}
+                {this.props.code ? this.props.code + ": " : null}{this.props.message}
                 {this.props.graphQLErrors ? [
                     "\n\n-----GraphQL Errors-----",
                     this.props.graphQLErrors.map((v: GraphQLError)=>{
