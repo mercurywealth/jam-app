@@ -3,3 +3,4 @@ __generated__
 logs
 .env
 dist
+.eslintcache
