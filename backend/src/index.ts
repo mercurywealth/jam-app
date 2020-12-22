@@ -8,7 +8,7 @@ import { ApolloServer, AuthenticationError } from "apollo-server-express";
 import { buildSchema  } from 'type-graphql';
 import logger from './helpers/log';
 import { isTokenValid } from './helpers/validateJWT';
-import { User } from './db/entities/User';
+import User from './db/entities/User';
 const log = logger("main")
 
 async function main() {
@@ -20,7 +20,8 @@ async function main() {
         
         //Generate schema
         const schema = await buildSchema({
-            resolvers: [`${__dirname}/gql/resolvers/**/*.{ts,js}`]
+            resolvers: [`${__dirname}/gql/resolvers/**/*.{ts,js}`],
+            validate: false,
         });
         
         //Create Apollo Server + Express server
@@ -34,13 +35,13 @@ async function main() {
                 var context = {user: null};
                 if (token == null) return context;
 
-                //do auth stuff to get the user
+                //validate jwt and attach the user to the context
                 try {
                     const decoded: any = await isTokenValid(token);
                     if (decoded){
                         const user = await User.findOne({id: decoded.oid});
                         if (user) context.user = user;
-                        else context.user = await User.insert({id: decoded.oid, email: decoded.emails[0], firstName: decoded.given_name, lastName: decoded.family_name})
+                        else context.user = await User.insert({id: decoded.oid, email: decoded.emails[0], firstName: decoded.given_name, lastName: decoded.family_name, roles: ["createnote", "editnote", "getnote"]})
                     }
                     return context;
                 }catch(e){
@@ -55,7 +56,7 @@ async function main() {
             log.info(`App ready. Listening.`);
         });
     }catch(e: any){
-        //log.error(e);
+        log.error(e);
     }
 }
 main();

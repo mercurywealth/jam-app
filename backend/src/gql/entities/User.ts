@@ -1,16 +1,19 @@
 import {ObjectType, Field, ID} from 'type-graphql';
 
-@ObjectType() // GraphQL Object
-export class User {
+@ObjectType("User") // GraphQL Object
+export default class GQLUser {
     @Field(()=>ID) // GraphQL Field
     id: string;
 
-    @Field(()=>String)
+    @Field()
     email: string;
 
-    @Field(()=>String)
+    @Field()
     firstName?: string;
 
-    @Field(()=>String)
+    @Field()
     lastName?: string;
+
+    @Field(()=>[String])
+    roles?: string[];
 }

@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import { Loader, Card, Button, Icon } from 'semantic-ui-react';
 import Error from '../layout/error';
 import { useGetNotesQuery } from '../../graphql/note/__generated__/getnotes.generated';
@@ -7,6 +7,7 @@ import DeleteModal from '../modals/delete';
 import { useDeleteNoteMutation } from '../../graphql/note/__generated__/deletenote.generated';
 
 import "./notes.css";
+import { useUser } from '../../hooks/user';
 
 interface NotesProps {
 }
@@ -17,12 +18,13 @@ export default function Notes (props: NotesProps){
     const [modal, setModal] = useState(false);
     const [id, setID] = useState(null);
     const history = useHistory();
-    const { loading, error, data, refetch, fetchMore, startPolling, stopPolling} = useGetNotesQuery();
+    const me = useUser();
+    const { loading, error, data, refetch, startPolling, stopPolling} = useGetNotesQuery();
     useEffect(()=>{
-        //refetch();
+        refetch();
         stopPolling()
         startPolling(1000);
-    }, [refetch]);
+    }, []);
     //Loading and error
     if (loading) return <Loader active/>
     if (error) return <Error graphQL={error}/>
@@ -43,6 +45,7 @@ export default function Notes (props: NotesProps){
 
     const hideModal = (success: boolean)=>{
         setModal(false);
+        refetch();
         return {};
     }
 
@@ -50,7 +53,7 @@ export default function Notes (props: NotesProps){
     if (!data){
         return <>
             <span>You do not have any notes.</span>,
-            <span><Link to="/new">Click Here</Link> to create one!</span>
+            {me.roles.includes("createnote") ? <span><Link to="/new">Click Here</Link> to create one!</span> : null}
         </>
     }
     return <>
@@ -62,8 +65,8 @@ export default function Notes (props: NotesProps){
                         <Card.Header>
                             {title}
                             <div className="controls">
-                                <Icon className="far fa-pencil clickable" onClick={()=>edit(id)}/>
-                                <Icon className="far fa-trash clickable" onClick={()=>del(id)}/>
+                                {me.roles.includes("updatenote") ? <Icon className="far fa-pencil clickable" onClick={()=>edit(id)}/> : null}
+                                {me.roles.includes("deletenote") ? <Icon className="far fa-trash clickable" onClick={()=>del(id)}/> : null}
                             </div>
                         </Card.Header>
                         <Card.Description>{description}</Card.Description>
@@ -71,7 +74,7 @@ export default function Notes (props: NotesProps){
                 </Card>
             })} 
         </div>
-        <Button content="Create Note" icon={<Icon className="fal fa-plus"/>} labelPosition="right" onClick={create}/>
+        {me.roles.includes("createnote") ? <Button content="Create Note" icon={<Icon className="fal fa-plus"/>} labelPosition="right" onClick={create}/> : null}
     </>
 
 }

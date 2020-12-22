@@ -1,8 +1,8 @@
 import {ObjectType, Field, ID} from 'type-graphql';
-import { User } from './User';
+import GQLUser from './User';
 
-@ObjectType() // GraphQL Object
-export class Note {
+@ObjectType("Note") // GraphQL Object
+export default class GQLNote {
     @Field(()=>ID) // GraphQL Field
     //@PrimaryGeneratedColumn("uuid") // ORM Column
     id: string;
@@ -13,6 +13,6 @@ export class Note {
     @Field(()=>String)
     description?: string;
 
-    @Field(()=>User)
-    owner: User;
+    @Field(()=>GQLUser)
+    owner: GQLUser;
 }

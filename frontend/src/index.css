@@ -55,6 +55,10 @@ code {
   margin-top: 16px;
 }
 
+a {
+  cursor: pointer;
+}
+
 /* Override Semantic's Icon styling since we have Pro */
 #root i.fas, body i.far, body i.fal {
   font-family: "Font Awesome 5 Pro";

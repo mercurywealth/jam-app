@@ -9,12 +9,19 @@ type GraphQLFormField = {
     props?: any,
 }
 
+type GraphQLParam = {
+    value: any,
+    appendTo: "create" | "update"
+}
+
+type GraphQLData = {[key: string]: any | GraphQLParam}
+
 interface GraphQLFormProps {
     title: string,
     className?: string,
     cancelURI?: string,
     fields: GraphQLFormField[],
-    data?: {},
+    data?: GraphQLData,
     config: {
         className: string,
         get: {
@@ -43,7 +50,11 @@ function GraphQLForm(props: GraphQLFormProps){
 
     //Apply the data from the query into the state
     const apply = function(data: any){
-        setState({data: query.data[props.config.className]})
+        var newData: {[key: string]: any} = {};
+        for(var field of props.fields){
+            newData[field.name] = data[props.config.className][field.name];
+        }
+        setState({data: newData});
     }
 
     //Apollo Hooks
@@ -65,12 +76,19 @@ function GraphQLForm(props: GraphQLFormProps){
     //Save (send data to GraphQL)
     const save = async function() {
         if (!props.data) props.data={};
-        const mergedData = {data: {...props.data, ...state.data}, id: match.params.id}; //merge prop data with the input state data
-
+        var mergedData: {[key: string]: any} = {data: state.data, id: match.params.id}; //merge prop data with the input state data
+        for(var k in props.data){
+            if (typeof props.data[k] == "object"){
+                if ((props.data[k].appendTo == "create" && !edit)) mergedData.data[k] = props.data[k].value;
+                else if ((props.data[k].appendTo == "update" && edit)) mergedData.data[k] = props.data[k].value;
+            }else{
+                mergedData.data[k] = props.data[k];
+            }
+        }
         //Create/Update
         try {
-            if (edit) await updateItem({variables: {...mergedData}});
-            else await addItem({variables: {...mergedData}});
+            if (edit) await updateItem({variables: mergedData});
+            else await addItem({variables: mergedData});
         }catch(e){}
     }
 

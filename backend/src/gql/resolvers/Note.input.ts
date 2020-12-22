@@ -1,5 +1,5 @@
 import {InputType, Field} from 'type-graphql';
-import { User } from '../entities/User';
+import GQLUser from '../entities/User';
 @InputType()
 export class CreateNoteInput {
     @Field()
@@ -9,7 +9,7 @@ export class CreateNoteInput {
     description?: string;
 
     @Field()
-    ownerId: string;
+    owner: string;
 }
 
 @InputType()
@@ -19,7 +19,4 @@ export class UpdateNoteInput {
 
     @Field({ nullable: true })
     description?: string;
-
-    @Field({ nullable: true })
-    ownerId?: string;
 }

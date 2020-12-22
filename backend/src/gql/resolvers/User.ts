@@ -1,34 +1,41 @@
-import {Resolver, Query, Mutation, Arg, InputType, Field, Ctx} from 'type-graphql';
-import {List, Get, Update, Create, Delete} from '../../helpers/defaultAPIGenerators';
-import { User } from '../entities/User';
-import {User as DBUser} from '../../db/entities/User';
+import {Resolver, Query, Mutation, Arg, Ctx} from 'type-graphql';
+import {List, Get, Update, Delete, Restricted} from '../../helpers/defaultAPIGenerators';
+import GQLUser from '../entities/User';
+import User from '../../db/entities/User';
 import {UpdateUserInput} from './User.input';
 import Context from '../../types/Context';
+import Roles from '../../types/Roles.json';
 
 @Resolver()
 export default class UserResolver {
-    @List(DBUser, {paginated: true, search: "title"})
-    @Query(()=>[User])
+    @Restricted([Roles.getuser.id])
+    @List(User, {paginated: true, search: "title"})
+    @Query(()=>[GQLUser])
     async users(@Arg("page", { defaultValue: 1 }) page: string, @Arg("search", { defaultValue: "" }) search: string) {}
 
-    @Query(()=>User)
+    @Restricted()
+    @Query(()=>GQLUser)
     async me(@Ctx() context: Context){
-        return DBUser.findOne(context.user.id)
+        return User.findOne(context.user.id)
     }
 
-    @Get(DBUser)
-    @Query(()=>User)
+    @Restricted([Roles.getuser.id])
+    @Get(User)
+    @Query(()=>GQLUser)
     async user(@Arg("id") id: string) {}
 
-    @Get(DBUser, {primaryField: "email"})
-    @Query(()=>User)
+    @Restricted([Roles.getuser.id])
+    @Get(User, {primaryField: "email"})
+    @Query(()=>GQLUser)
     async userEmail(@Arg("email") email: string) {}
 
-    @Update(DBUser)
-    @Mutation(()=>User)
+    @Restricted([Roles.updateuser.id])
+    @Update(User)
+    @Mutation(()=>GQLUser)
     async updateUser(@Arg("id") id: string, @Arg("data") data: UpdateUserInput) {}
 
-    @Delete(DBUser)
+    @Restricted([Roles.deleteuser.id])
+    @Delete(User)
     @Mutation(()=>Boolean)
     async deleteUser(@Arg("id") id: string) {}
 }

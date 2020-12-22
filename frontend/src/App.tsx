@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter as Router,Switch,Route,Link} from 'react-router-dom';
+import {BrowserRouter as Router,Switch,Route} from 'react-router-dom';
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, ApolloLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { MsalProvider } from "@azure/msal-react";
@@ -34,7 +34,7 @@ const authLink = setContext((_, {headers})=>{
 });
 const errorLink = onError(({graphQLErrors, networkError, operation})=>{
     if (graphQLErrors){
-        graphQLErrors.map(({message})=>{
+        graphQLErrors.forEach(({message})=>{
             console.error(`[GraphQL Error]: Operation: ${operation.operationName}, Message: \n${message}`);
         })
     }
@@ -44,7 +44,9 @@ const errorLink = onError(({graphQLErrors, networkError, operation})=>{
 })
 const client = new ApolloClient({
     uri: process.env.REACT_APP_GRAPHQL_URI,
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+        addTypename: false
+    }),
     link: ApolloLink.from([errorLink, authLink, httpLink]),
 
 });
@@ -56,8 +58,8 @@ const msalConfiguration: Configuration = {
         authority: authConfig.authorities.login,
         knownAuthorities: Object.values(authConfig.authorities),
         clientId: process.env.REACT_APP_B2C_CLIENT!,
-        //redirectUri: window.location.origin,
-        //navigateToLoginRequestUrl: true,
+        redirectUri: window.location.origin,
+        navigateToLoginRequestUrl: true,
     },
     cache: {
         cacheLocation: "sessionStorage",

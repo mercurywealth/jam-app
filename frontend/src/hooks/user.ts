@@ -1,4 +1,3 @@
-import { create } from "domain";
 import { createContext, useContext } from "react";
 import { User } from "../__generated__/types";
 
@@ -7,6 +6,7 @@ export const userContext = createContext<User>({
     email: "",
     firstName: "",
     lastName: "",
+    roles: [],
 })
 
 export function useUser() {

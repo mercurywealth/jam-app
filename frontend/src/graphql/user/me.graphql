@@ -3,6 +3,7 @@ query Me {
         id,
         email,
         firstName,
-        lastName
+        lastName,
+        roles
     }
 }

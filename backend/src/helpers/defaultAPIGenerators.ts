@@ -1,12 +1,11 @@
-import {Like, MoreThan, getMetadataArgsStorage, ColumnOptions, InsertEvent, EntitySubscriberInterface, EventSubscriber} from "typeorm";
+import {Like, MoreThan, getMetadataArgsStorage, ColumnOptions, InsertEvent, EntitySubscriberInterface, EventSubscriber, getConnection} from "typeorm";
 import { EventListenerTypes } from "typeorm/metadata/types/EventListenerTypes";
 import uuidgen from './uuid';
 import {uuid2bin, bin2uuid} from './hexbin';
 import {AuthenticationError} from 'apollo-server';
-import { Ctx, getMetadataStorage } from "type-graphql";
+import { getMetadataStorage } from "type-graphql";
 import Context from '../types/Context';
 import { ParamMetadata } from "type-graphql/dist/metadata/definitions";
-import { Note } from "../db/entities/Note";
 
 export enum Type {
     LIST,
@@ -20,6 +19,7 @@ export interface Options {
     search?: string | string[],
     paginated?: boolean | string,
     primaryField?: string,
+    where?: {[key: string]: any}
 }
 
 // Setup
@@ -27,28 +27,18 @@ const PAGE_SIZE = 20;
 var binaryFields = {};
 
 export function Restricted(roles: string[] = [], rolesAnd: boolean = true): MethodDecorator{
-    const hasAccess = (user)=>{
-        var count = 0;
-        for (var role of roles){
-            if (user.roles.includes(role)){
-                if (rolesAnd) count++;
-                else return true;
-            }
-        }
-        if (rolesAnd && count == roles.length) return true;
-        return false;
-    }
     return function (target: any, key: string, descriptor: PropertyDescriptor){
         const ogMethod = descriptor.value;
         descriptor.value = async function(...args: any[]) {
             const context: Context = args[args.length-1];
             if (!context.user) throw new AuthenticationError("You must be logged in to access this resource");
-            if (hasAccess(context.user)) return ogMethod.apply(this, args)
+            if (context.user.hasRoles(roles, rolesAnd)) return ogMethod.apply(this, args)
             else throw new AuthenticationError("You do not have permission to access this resource")
         }
         const params = getMetadataStorage().params.filter((v:ParamMetadata)=>{
             return v.target == target.constructor;
         });
+        //Context handler
         getMetadataStorage().collectHandlerParamMetadata({
             kind: "context",
             target: target.constructor,
@@ -68,7 +58,7 @@ export function PrimaryUUIDColumn(){
         } as ColumnOptions;
 
         object.setupUUID = ()=>{
-            if (!object[propertyName]) object[propertyName] = uuidgen();
+            object[propertyName] = uuidgen();
         }
         // object.fixUUID = ()=>{
         //     object[propertyName] = uuid2bin(object[propertyName]);
@@ -124,10 +114,50 @@ function GenerateDefault(type: Type, cl: any, options: Options = {}): MethodDeco
             if (r != undefined && r!= null) return r; //If the og method returns data, return it here and skip the rest of the op. 
             const id = args[0];
             var item = null;
+
+            // Context
+            const params = getMetadataStorage().params.filter((v:ParamMetadata)=>{
+                return v.target == target.constructor;
+            });
+            getMetadataStorage().collectHandlerParamMetadata({
+                kind: "context",
+                target: target.constructor,
+                methodName: key,
+                index: params.length,
+                propertyName: ""
+            });
+            const me = args[args.length-1];
+
+            //Get any relation columns for this type
+            var relations = [];
+            getConnection().getMetadata(cl).relations.forEach(v=>{
+                relations.push(v.propertyName)
+            });
+            var ops = {where: {}, relations: relations, skip: 0, take: PAGE_SIZE}
+
+            //Add where to ops
+            if (options.where){
+                for(var k in options.where){
+                    if (options.where[k].indexOf("@") === 0){
+                        switch(options.where[k]){
+                            case "@me.id":
+                                options.where[k] = me.user.id;
+                            break;
+                            case "@me.team": 
+                                options.where[k] = me.user.team;
+                            break;
+                            case "@me.company":
+                                options.where[k] = me.user.company;
+                            break;
+                        }
+                    }
+                    ops.where[k] = options.where[k];
+                }
+            }
+
             // Handle the request, depending on CRUD op type
             switch(type){
                 case Type.LIST: 
-                    var ops = { where: {}, skip: 0, take: PAGE_SIZE };
                     const keys = Object.keys(options);
                     for(var i = 0; i < keys.length; i++){
                         const k = keys[i];
@@ -153,14 +183,15 @@ function GenerateDefault(type: Type, cl: any, options: Options = {}): MethodDeco
                                 }else{
                                     ops.where[options.search] = Like("%"+args[i]+"%");
                                 }
-                                
+                            break;
                         }
                     }
                     return await cl.find(ops);
                 case Type.GET:
                     const where = {};
                     where[options.primaryField ? options.primaryField : "id"] = id;
-                    item = await cl.findOne({where: where});
+                    ops.where = where;
+                    item = await cl.findOne(ops);
                     if (!item) throw new Error(`${cl.name} with ID "${id}" not found`);
                     return item;
                 case Type.CREATE:

@@ -11,7 +11,7 @@ interface NoteFormProps {
 
 export default function NoteForm(props: React.PropsWithChildren<NoteFormProps>) {
     const me = useUser();
-    console.log(me)
+    
     return <GraphQLForm title="Note" {...props} config={{
         className: "note",
         get: {
@@ -39,6 +39,9 @@ export default function NoteForm(props: React.PropsWithChildren<NoteFormProps>) 
             }
         }
     ]} data={{
-        ownerId: me.id
+        owner: {
+            value: me.id,
+            appendTo: "create"
+        }
     }}/>;
 }

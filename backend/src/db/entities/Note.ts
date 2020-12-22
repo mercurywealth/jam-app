@@ -1,12 +1,11 @@
-import {Entity, BaseEntity, Column, JoinColumn, OneToOne, Index} from "typeorm";
+import {Entity, BaseEntity, Column, JoinColumn, OneToOne, ManyToOne, Index} from "typeorm";
 import {PrimaryUUIDColumn} from '../../helpers/defaultAPIGenerators';
-import { User } from "./User";
+import User from "./User";
 //Create both a model for the ORM and a entity for GraphQL from the same class! :D
 
 @Entity() // ORM Entity
-export class Note extends BaseEntity {
+export default class Note extends BaseEntity {
     @PrimaryUUIDColumn() 
-    //@PrimaryGeneratedColumn("uuid") // ORM Column
     id: Buffer;
 
     @Column()
@@ -15,7 +14,7 @@ export class Note extends BaseEntity {
     @Column()
     description?: string;
 
-    @OneToOne(()=>User)
+    @ManyToOne(()=>User)
     @JoinColumn()
     owner: User;
 }

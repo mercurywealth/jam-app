@@ -1,28 +1,18 @@
 import { relativeTimeThreshold } from "moment";
-import {Entity, BaseEntity, Column, ManyToOne, JoinColumn, PrimaryColumn} from "typeorm";
+import {Entity, BaseEntity, PrimaryGeneratedColumn, Column, PrimaryColumn, Index} from "typeorm";
+import {PrimaryUUIDColumn} from '../../helpers/defaultAPIGenerators';
 import Roles from '../../types/Roles.json';
-import Team from "./Team";
 
 @Entity() // ORM Entity
-export default class User extends BaseEntity {
-    @PrimaryColumn()
+export default class Team extends BaseEntity {
+    @PrimaryUUIDColumn()
     id: string    
 
-    @Column({unique: true})
-    email: string;
-
     @Column({nullable: true})
-    firstName: string;
-
-    @Column({nullable: true})
-    lastName: string;
+    name: string;
 
     @Column("simple-array", {nullable: true})
     roles: string[];
-
-    @ManyToOne(()=>Team)
-    @JoinColumn()
-    team: Team;
 
     public calculateRoles(): string[]{
         var roles = this.roles;
