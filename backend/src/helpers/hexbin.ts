@@ -1,5 +1,5 @@
 export function hex2bin(hex){
-    return (parseInt(hex, 16)).toString(2).substr(0, 16);
+    return Buffer.from(hex, "hex");
 }
 
 export function bin2hex(bin){

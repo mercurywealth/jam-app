@@ -17,15 +17,15 @@ export default function Notes (props: NotesProps){
     const [modal, setModal] = useState(false);
     const [id, setID] = useState(null);
     const history = useHistory();
-    const { loading, error, data, refetch, fetchMore, startPolling} = useGetNotesQuery();
+    const { loading, error, data, refetch, fetchMore, startPolling, stopPolling} = useGetNotesQuery();
     useEffect(()=>{
-        refetch();
-        startPolling(5);
+        //refetch();
+        stopPolling()
+        startPolling(1000);
     }, [refetch]);
-
     //Loading and error
     if (loading) return <Loader active/>
-    if (error) return <Error message={error.message} graphQLErrors={error.graphQLErrors}/>
+    if (error) return <Error graphQL={error}/>
 
     //Funcs
     const create = ()=>{

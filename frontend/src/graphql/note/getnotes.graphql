@@ -3,6 +3,11 @@ query GetNotes {
         id,
         title,
         description,
-        owner
+        owner {
+            id,
+            email,
+            firstName,
+            lastName
+        }
     }
 }

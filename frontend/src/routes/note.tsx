@@ -1,53 +1,13 @@
-import React from 'react';
-import GraphQLForm from '../components/input/graphQLForm';
+import {PropsWithChildren, useState} from 'react';
 import {RouteComponentProps } from 'react-router-dom';
-import { Form } from 'semantic-ui-react';
-import { useGetNoteQuery } from '../graphql/note/__generated__/getnote.generated';
-import { useUpdateNoteMutation } from '../graphql/note/__generated__/updatenote.generated';
-import { useCreateNoteMutation } from '../graphql/note/__generated__/createnote.generated';
+import AuthProvider from "../components/providers/auth";
+import NoteForm from '../components/forms/noteForm';
 
-interface NoteRouteState {
-    
-}
 interface NoteRouteProps extends RouteComponentProps<{}> {
-    
 }
 
-export default class NoteRoute extends React.Component<NoteRouteProps,NoteRouteState>{
-    constructor(props: NoteRouteProps){
-        super(props);
-        this.state={};
-    }
-
-    render(){
-        return <GraphQLForm title="Note" {...this.props} config={{
-            className: "note",
-            get: {
-                hook: useGetNoteQuery
-            },
-            update: {
-                hook: useUpdateNoteMutation,
-            },
-            create: {
-                hook: useCreateNoteMutation,
-            }
-        }} fields={[
-            {
-                name: "title",
-                type: "text",
-                props: {
-                    label: "Title"
-                }
-            },
-            {
-                name: "description",
-                type: Form.TextArea,
-                props: {
-                    label: "Content"
-                }
-            }
-        ]} data={{
-            owner: "me"
-        }}/>;
-    }
+export default function NoteRoute(props: React.PropsWithChildren<NoteRouteProps>) {
+    return <AuthProvider>
+        <NoteForm/>
+    </AuthProvider>
 }

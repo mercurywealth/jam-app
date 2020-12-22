@@ -1,47 +1,62 @@
+import * as dotenv from 'dotenv';
+dotenv.config({path: __dirname + "/../.env"});
+
 import express from 'express';
 import "reflect-metadata";
 import {createConnection } from "typeorm";
 import { ApolloServer, AuthenticationError } from "apollo-server-express";
-import { buildSchema,  } from 'type-graphql';
+import { buildSchema  } from 'type-graphql';
+import logger from './helpers/log';
+import { isTokenValid } from './helpers/validateJWT';
+import { User } from './db/entities/User';
+const log = logger("main")
 
 async function main() {
-    //Connect typeorm to the database
-    const connection = await createConnection();
-    
-    //Generate schema
-    const schema = await buildSchema({
-        resolvers: [`${__dirname}/resolvers/**/*.{ts,js}`]
-    });
-    
-    //Create Apollo Server + Express server
-    const app = express();
-    const port = process.env.WEBSITES_PORT ? process.env.WEBSITES_PORT : 4000;
-    const server = new ApolloServer({
-        schema,
-        context: ({req, res})=>{
-            const authHeader = req.headers.authorization || '';
-            const token = authHeader && authHeader.split(' ')[1]
-            if (token == null) return res.sendStatus(401) // if there isn't any token
-            //do auth stuff to get the user
-            // jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string, (err:any, user: any)=>{
-            //     if (err){
-            //         console.error(err);
-            //         return res.sendStatus(403);
-            //     }
-            //     //req.user = user;
-            //     //next();
-            // });
-            var user = true;
-            if (!user) throw new AuthenticationError('you must be logged in'); 
-            return {user}
-        }
-    });
-    server.applyMiddleware({app});
-    
-    //Start listening on the app port
-    app.listen(port, () => {
-        console.log(`Example app listening at http://localhost:${port}`);
-    });
+    log.info("Starting app...");
+    try {
+
+        //Connect typeorm to the database
+        const connection = await createConnection();
+        
+        //Generate schema
+        const schema = await buildSchema({
+            resolvers: [`${__dirname}/gql/resolvers/**/*.{ts,js}`]
+        });
+        
+        //Create Apollo Server + Express server
+        const app = express();
+        const port = process.env.WEBSITES_PORT ? process.env.WEBSITES_PORT : 4000;
+        const server = new ApolloServer({
+            schema,
+            context: async ({req})=>{
+                const authHeader = req.headers.authorization || '';
+                const token = authHeader && authHeader.split(' ')[1];
+                var context = {user: null};
+                if (token == null) return context;
+
+                //do auth stuff to get the user
+                try {
+                    const decoded: any = await isTokenValid(token);
+                    if (decoded){
+                        const user = await User.findOne({id: decoded.oid});
+                        if (user) context.user = user;
+                        else context.user = await User.insert({id: decoded.oid, email: decoded.emails[0], firstName: decoded.given_name, lastName: decoded.family_name})
+                    }
+                    return context;
+                }catch(e){
+                    throw new AuthenticationError(e.message);
+                }
+            }
+        });
+        server.applyMiddleware({app});
+        
+        //Start listening on the app port
+        app.listen(port, () => {
+            log.info(`App ready. Listening.`);
+        });
+    }catch(e: any){
+        //log.error(e);
+    }
 }
 main();
 

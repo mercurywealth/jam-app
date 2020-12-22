@@ -1,8 +1,13 @@
-query GetNote($id: String!){
+query GetNote($id: String!) {
     note(id: $id){
         id,
         title,
         description,
-        owner
+        owner {
+            id,
+            email,
+            firstName,
+            lastName
+        }
     }
 }

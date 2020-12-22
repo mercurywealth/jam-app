@@ -2,6 +2,11 @@ import {Like, MoreThan, getMetadataArgsStorage, ColumnOptions, InsertEvent, Enti
 import { EventListenerTypes } from "typeorm/metadata/types/EventListenerTypes";
 import uuidgen from './uuid';
 import {uuid2bin, bin2uuid} from './hexbin';
+import {AuthenticationError} from 'apollo-server';
+import { Ctx, getMetadataStorage } from "type-graphql";
+import Context from '../types/Context';
+import { ParamMetadata } from "type-graphql/dist/metadata/definitions";
+import { Note } from "../db/entities/Note";
 
 export enum Type {
     LIST,
@@ -14,22 +19,56 @@ export enum Type {
 export interface Options {
     search?: string | string[],
     paginated?: boolean | string,
+    primaryField?: string,
 }
 
 // Setup
 const PAGE_SIZE = 20;
 var binaryFields = {};
 
+export function Restricted(roles: string[] = [], rolesAnd: boolean = true): MethodDecorator{
+    const hasAccess = (user)=>{
+        var count = 0;
+        for (var role of roles){
+            if (user.roles.includes(role)){
+                if (rolesAnd) count++;
+                else return true;
+            }
+        }
+        if (rolesAnd && count == roles.length) return true;
+        return false;
+    }
+    return function (target: any, key: string, descriptor: PropertyDescriptor){
+        const ogMethod = descriptor.value;
+        descriptor.value = async function(...args: any[]) {
+            const context: Context = args[args.length-1];
+            if (!context.user) throw new AuthenticationError("You must be logged in to access this resource");
+            if (hasAccess(context.user)) return ogMethod.apply(this, args)
+            else throw new AuthenticationError("You do not have permission to access this resource")
+        }
+        const params = getMetadataStorage().params.filter((v:ParamMetadata)=>{
+            return v.target == target.constructor;
+        });
+        getMetadataStorage().collectHandlerParamMetadata({
+            kind: "context",
+            target: target.constructor,
+            methodName: key,
+            index: params.length,
+            propertyName: ""
+        });
+    }
+}
+
 export function PrimaryUUIDColumn(){
     return function (object, propertyName) {
         var options = {
             primary: true,
             type: "varchar",
-            length: 32,
+            length: 36,
         } as ColumnOptions;
 
         object.setupUUID = ()=>{
-            object[propertyName] = uuidgen();
+            if (!object[propertyName]) object[propertyName] = uuidgen();
         }
         // object.fixUUID = ()=>{
         //     object[propertyName] = uuid2bin(object[propertyName]);
@@ -119,7 +158,9 @@ function GenerateDefault(type: Type, cl: any, options: Options = {}): MethodDeco
                     }
                     return await cl.find(ops);
                 case Type.GET:
-                    item = await cl.findOne({where: {id}});
+                    const where = {};
+                    where[options.primaryField ? options.primaryField : "id"] = id;
+                    item = await cl.findOne({where: where});
                     if (!item) throw new Error(`${cl.name} with ID "${id}" not found`);
                     return item;
                 case Type.CREATE:
