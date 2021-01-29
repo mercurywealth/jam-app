@@ -2,18 +2,28 @@
   "compilerOptions": {  
   "target": "es6",  
     "module": "commonjs",  
-    "rootDir": "src",  
+    "rootDir": "./src",  
     "outDir": "dist",  
+    "baseUrl": "./src",
     "sourceMap": true,  
     "resolveJsonModule": true,  
     "lib": ["es6", "dom"],  
+    "paths": {
+      "@app/*": ["./*"],
+      "@entities/*": ["./db/entities/*"],
+      "@helpers/*": ["./helpers/*"],
+      "@gql/*": ["./gql/*"],
+      "@db/*": ["./gql/*"]
+    },
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "alwaysStrict": false,
+    "noImplicitReturns": false
   },  
   "include": [  
-    "src/**/*.ts"  
-  ],  
+    "./src/**/*.ts"  
+  ],
   "exclude": [  
     "node_modules"  
   ]  

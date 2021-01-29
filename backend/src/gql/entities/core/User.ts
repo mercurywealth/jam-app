@@ -15,5 +15,5 @@ export default class GQLUser {
     lastName?: string;
 
     @Field(()=>[String])
-    roles?: string[];
+    permissions?: string[];
 }

@@ -20,8 +20,8 @@ export function getKey(header, callback) {
 export function isTokenValid(token: string) {
     return new Promise((resolve)=>{
         const options = {
-            audience: [process.env.B2C_CLIENT],
-            issuer: [process.env.B2C_ISSUER]
+            audience: process.env.JWT_AUDIENCE.split(","),
+            issuer: process.env.JWT_ISSUER.split(",")
         };
         jwt.verify(token, getKey, options, (err, decoded)=>{
             if (err){

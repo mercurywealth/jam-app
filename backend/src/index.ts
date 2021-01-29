@@ -1,22 +1,21 @@
+import "reflect-metadata";
+import 'module-alias/register';
 import * as dotenv from 'dotenv';
 dotenv.config({path: __dirname + "/../.env"});
 
 import express from 'express';
-import "reflect-metadata";
-import {createConnection } from "typeorm";
+import { createConnection, useContainer } from "typeorm";
 import { ApolloServer, AuthenticationError } from "apollo-server-express";
 import { buildSchema  } from 'type-graphql';
 import logger from './helpers/log';
 import { isTokenValid } from './helpers/validateJWT';
-import User from './db/entities/User';
+import User from './db/entities/core/User';
+import { Container } from 'typedi';
 const log = logger("main")
 
 async function main() {
     log.info("Starting app...");
     try {
-
-        //Connect typeorm to the database
-        const connection = await createConnection();
         
         //Generate schema
         const schema = await buildSchema({
@@ -35,13 +34,18 @@ async function main() {
                 var context = {user: null};
                 if (token == null) return context;
 
+                //Connect typeorm to the database
+                useContainer(Container);
+                const connection = await createConnection();
+
                 //validate jwt and attach the user to the context
                 try {
                     const decoded: any = await isTokenValid(token);
                     if (decoded){
                         const user = await User.findOne({id: decoded.oid});
-                        if (user) context.user = user;
-                        else context.user = await User.insert({id: decoded.oid, email: decoded.emails[0], firstName: decoded.given_name, lastName: decoded.family_name, roles: ["createnote", "editnote", "getnote"]})
+                        if (user) context.user = user; //existing user, get from DB
+                        // New user, create
+                        else context.user = await User.insert({id: decoded.oid, permissions: ["User.get"]})
                     }
                     return context;
                 }catch(e){

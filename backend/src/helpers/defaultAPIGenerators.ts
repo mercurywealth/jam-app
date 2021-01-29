@@ -4,7 +4,7 @@ import uuidgen from './uuid';
 import {uuid2bin, bin2uuid} from './hexbin';
 import {AuthenticationError} from 'apollo-server';
 import { getMetadataStorage } from "type-graphql";
-import Context from '../types/Context';
+import Context from 'types/Context';
 import { ParamMetadata } from "type-graphql/dist/metadata/definitions";
 
 export enum Type {
@@ -24,15 +24,14 @@ export interface Options {
 
 // Setup
 const PAGE_SIZE = 20;
-var binaryFields = {};
 
-export function Restricted(roles: string[] = [], rolesAnd: boolean = true): MethodDecorator{
+export function Restricted(perms: string[] = [], requireAll: boolean = true): MethodDecorator{
     return function (target: any, key: string, descriptor: PropertyDescriptor){
         const ogMethod = descriptor.value;
         descriptor.value = async function(...args: any[]) {
-            const context: Context = args[args.length-1];
+            const context: Context = args[args.length - 1];
             if (!context.user) throw new AuthenticationError("You must be logged in to access this resource");
-            if (context.user.hasRoles(roles, rolesAnd)) return ogMethod.apply(this, args)
+            if (context.user.hasPermissions(perms, requireAll)) return ogMethod.apply(this, args)
             else throw new AuthenticationError("You do not have permission to access this resource")
         }
         const params = getMetadataStorage().params.filter((v:ParamMetadata)=>{
@@ -50,54 +49,51 @@ export function Restricted(roles: string[] = [], rolesAnd: boolean = true): Meth
 }
 
 export function PrimaryUUIDColumn(){
-    return function (object, propertyName) {
-        var options = {
-            primary: true,
-            type: "varchar",
-            length: 36,
-        } as ColumnOptions;
-
+    return function (object: any, propertyName: string) {
         object.setupUUID = ()=>{
             object[propertyName] = uuidgen();
         }
-        // object.fixUUID = ()=>{
-        //     object[propertyName] = uuid2bin(object[propertyName]);
-        // }
-        // object.returnUUID = ()=>{
-        //     object[propertyName] = bin2uuid(object[propertyName]);
-        // }
-        // if (!binaryFields[object.constructor]) binaryFields[object.constructor] = [];
-        // binaryFields[object.constructor].push(propertyName);
-        // Buffer.prototype.valueOf = function() {
-        //     return bin2uuid(this);
-        // };
+        
         getMetadataArgsStorage().columns.push({
             target: object.constructor,
             propertyName: propertyName,
             mode: "regular",
-            options: options
+            options: {
+                primary: true,
+                type: "varbinary",
+                length: 24,
+                transformer: {
+                    to: (value: string) => uuid2bin(value),
+                    from: (value: Buffer) => bin2uuid(value)
+                }
+            },
         });
+    
         getMetadataArgsStorage().entityListeners.push({
             target: object.constructor,
             propertyName: "setupUUID",
             type: EventListenerTypes.BEFORE_INSERT
         });
-        // getMetadataArgsStorage().entityListeners.push({
-        //     target: object.constructor,
-        //     propertyName: "returnUUID",
-        //     type: EventListenerTypes.AFTER_INSERT
-        // });
-        // getMetadataArgsStorage().entityListeners.push({
-        //     target: object.constructor,
-        //     propertyName: "fixUUID",
-        //     type: EventListenerTypes.BEFORE_UPDATE
-        // });
-        // getMetadataArgsStorage().entityListeners.push({
-        //     target: object.constructor,
-        //     propertyName: "returnUUID",
-        //     type: EventListenerTypes.AFTER_UPDATE
-        // });
+    }
+}
 
+export function BinaryColumn() {
+    return function (object: any, propertyName: string) {
+        getMetadataArgsStorage().columns.push({
+            target: object.constructor,
+            propertyName: propertyName,
+            mode: "regular",
+            options: {
+                primary: true,
+                type: "varbinary",
+                length: 24,
+                unique: true,
+                transformer: {
+                    to: (value: string) => Buffer.from(value, "utf8"),
+                    from: (value: Buffer) => value.toString("utf8")
+                }
+            },
+        });
     }
 }
 
@@ -146,8 +142,8 @@ function GenerateDefault(type: Type, cl: any, options: Options = {}): MethodDeco
                             case "@me.team": 
                                 options.where[k] = me.user.team;
                             break;
-                            case "@me.company":
-                                options.where[k] = me.user.company;
+                            case "@me.tenant":
+                                options.where[k] = me.user.tenant;
                             break;
                         }
                     }
