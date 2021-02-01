@@ -7,6 +7,7 @@ import { Configuration,  PublicClientApplication } from "@azure/msal-browser";
 import Navbar from './components/layout/navbar';
 import authConfig from './config/authConfig';
 import { onError } from "@apollo/client/link/error";
+import { resolve } from 'path';
 
 //Routes
 import MainRoute from './routes/main';
@@ -16,7 +17,7 @@ import NoteRoute from './routes/note';
 
 //Setup Apollo client
 const httpLink = createHttpLink({
-    uri: process.env.REACT_APP_GRAPHQL_URI + "/graphql"
+    uri: resolve(process.env.REACT_APP_BACKEND_URL!, "/graphql")
 });
 const authLink = setContext((_, {headers})=>{
     const token = localStorage.getItem("api_token");

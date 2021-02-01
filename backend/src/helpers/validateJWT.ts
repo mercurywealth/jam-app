@@ -1,12 +1,16 @@
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa'
 import logger from './log'
+import * as Metadata from '@helpers/metadata';
+import { AuthenticationError } from 'apollo-server';
 
 const log = logger("jwt")
-const client = jwksClient({
-    jwksUri: process.env.B2C_JWKSURI
-});
-export function getKey(header, callback) {
+var metadata: {[key: string]: any} = {};
+
+function getKey(header, callback) {
+    const client = jwksClient({
+        jwksUri: metadata["jwks_uri"]
+    });
     client.getSigningKey(header.kid, (err,key: any)=>{
         if (err){
             callback(err, null)
@@ -17,15 +21,18 @@ export function getKey(header, callback) {
     })
 }
 
-export function isTokenValid(token: string) {
-    return new Promise((resolve)=>{
+export async function isTokenValid(token: string) {
+    const enviss = process.env.JWT_ISSUER ? process.env.JWT_ISSUER.split(",") : [];
+    metadata = await Metadata.get();
+    return new Promise((resolve, reject)=>{
         const options = {
             audience: process.env.JWT_AUDIENCE.split(","),
-            issuer: process.env.JWT_ISSUER.split(",")
+            issuer: [...enviss, metadata["issuer"]]
         };
         jwt.verify(token, getKey, options, (err, decoded)=>{
             if (err){
-                resolve(false);
+                log.error(err);
+                reject(err);
             } else {
                 resolve(decoded);
             }

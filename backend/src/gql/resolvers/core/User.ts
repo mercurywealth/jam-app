@@ -1,11 +1,11 @@
 import {Resolver, Query, Mutation, Arg, Ctx} from 'type-graphql';
 import {List, Get, Update, Delete, Restricted} from '@app/helpers/defaultAPIGenerators';
 import GQLUser from '@app/gql/entities/core/User';
-import User from '@entities/core/User';
+import User from '@app/db/entities/core/User';
 import {UpdateUserInput} from './User.input';
 import Context from '@app/types/Context';
 import { Container } from "typedi";
-import UserService from '@app/db/resolvers/UserService';
+import UserService from '@app/db/resolvers/core/UserService';
 
 @Resolver()
 export default class UserResolver {
@@ -13,14 +13,13 @@ export default class UserResolver {
     @Query(()=>[GQLUser])
     async users(@Arg("page", { defaultValue: 1 }) page: string, @Arg("search", { defaultValue: "" }) search: string) {
         const userService = Container.get(UserService);
-
     }
 
     //@Restricted(User, ["get"])
     @Query(()=>GQLUser)
     async me(@Ctx() context: Context){
         const userService = Container.get(UserService);
-        return userService.findOne(context.user.id);
+        return userService.findOne(context, context.user.id);
     }
 
     //@Restricted([Permissions.getuser.id])

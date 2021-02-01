@@ -13,7 +13,7 @@
       "@entities/*": ["./db/entities/*"],
       "@helpers/*": ["./helpers/*"],
       "@gql/*": ["./gql/*"],
-      "@db/*": ["./gql/*"]
+      "@db/*": ["./db/*"]
     },
     "esModuleInterop": true,
     "experimentalDecorators": true,
