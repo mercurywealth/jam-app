@@ -13,7 +13,8 @@
     "lint:fix": "eslint . --fix",
     "docker-login": "docker login mwmcontainerregistry.azurecr.io",
     "docker-build": "docker build -t mwmcontainerregistry.azurecr.io/jam-app .",
-    "push": "docker build -t mwmcontainerregistry.azurecr.io/jam-app . && docker push mwmcontainerregistry.azurecr.io/jam-app"
+    "push": "docker build -t mwmcontainerregistry.azurecr.io/jam-app . && docker push mwmcontainerregistry.azurecr.io/jam-app",
+    "createTenant": "ts-node ./tools/createTenant"
   },
   "author": "",
   "license": "ISC",

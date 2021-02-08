@@ -1,9 +1,10 @@
+import Tenant from '@entities/core/Tenant';
+import GQLUser from '@app/gql/entities/core/User';
 import { Connection } from 'typeorm';
-import User from '../db/entities/core/User';
 
 export default interface Context {
-    user?: User;
+    user?: GQLUser;
     jwt: string;
+    tenant: Tenant,
     connectionName: string,
-    tenant: string,
 }

@@ -7,8 +7,8 @@ module.exports = {
     username: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASS,
     database: process.env.DATABASE_DB,
-    entityPrefix: process.env.DATABASE_PREFIX,
-    synchronize: true,
+    entityPrefix: "shared_",
+    synchronize: false,
     ssl: !process.env.DATABASE_SSL || process.env.DATABASE_SSL == "true" ? {
         ca: fs.readFileSync(__dirname + "/ca.pem")
     } : null,
